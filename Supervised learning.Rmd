@@ -384,6 +384,7 @@ final_model %>%
     data = juice(tree_prep)) %>%
   vip(geom = "point")
 ```
+
 The most important variable  in predicting the crohn disease is education level age (0.005) followed by education level (0.004) and age (0.0026). The least important variables are gender (< 0.001) followed by work status (< 0.001). 
 
 ```{r}
