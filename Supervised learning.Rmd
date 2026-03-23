@@ -10,7 +10,7 @@ knitr::opts_chunk$set(echo = TRUE)
 ```
 
 # Loading the Library
-```{r setup}
+```{r}
 library(tidyverse)
 library(tidymodels)
 library(sjPlot)
@@ -33,16 +33,24 @@ library(microbenchmark)
 ```
 
 # Loading the Data
+
+I used the Canpath Imputed dataset for this assignment.
+
 ```{r}
 data<-read_csv("Canpath_imputed.csv")
 ```
 
 # Simplifying the dataset
+
+Extracting some of the relevant variables to make the dataset simple for ease of computation.
+
 ```{r}
 Small_data <- select(data, DIS_CROHN_EVER, HS_GEN_HEALTH, SDC_AGE_CALC, SDC_EDU_LEVEL, PM_BMI_SR, WRK_FULL_TIME, SMK_CIG_EVER, SDC_INCOME, PA_TOTAL_SHORT, HS_ROUTINE_VISIT_EVER, PSE_ADULT_WRK_DURATION, DIS_RESP_SLEEP_APNEA_EVER, SDC_EDU_LEVEL_AGE, SDC_GENDER)
 ```
 
 # Preparing the variables
+
+The Crohn Disease was used as the outcome variable of interest. The variables was recoded to binary with 0 representing no crohn disease and 1 representing crohn disease.
 ```{r}
 table(Small_data$DIS_CROHN_EVER)
 
@@ -57,6 +65,7 @@ table(Small_data$DIS_CROHN_EVER, Small_data$Crohn)
 
 Small_data$DIS_CROHN_EVER <- NULL
 ```
+The general health variable was recoded from 5 levels to 4 levels to make the sample even in each sample.
 
 ```{r}
 table(Small_data$HS_GEN_HEALTH)
@@ -95,27 +104,31 @@ duplicated(Small_data)
 No Duplicated values were found in this dataset.
 
 ## Checking the missing values
+
 ```{r}
 any(is.na(Small_data))
 ```
 No missing values were found in the dataset as expected from imputed dataset.
 
 # Splitting the dataset
+
+The dataset was split to evaluate the model performance after fitting the model on training dataset.
+
 ```{r}
 # Fixing the random numbers by setting the seed to reproduce the analysis
 set.seed(10)
 
-#### Cross Validation Split
+# Cross Validation Split
 cv_split <- initial_validation_split(Small_data, 
                             strata = Crohn, 
                             prop = c(0.70, 0.20))
 
 # Create data frames for the two sets:
 train_data <- training(cv_split)
-table(train_data$gen_health)
+table(train_data$Crohn)
 
 test_data  <- testing(cv_split)
-table(test_data$gen_health)
+table(test_data$Crohn)
 ```
 
 # Model Building
@@ -133,7 +146,7 @@ rf_model <- rand_forest(mtry = tune(), min_n = tune(), trees = 100) %>%
               set_mode("classification")
 ```
 
-# Creating a Recipe
+## Creating a Recipe
 
 ```{r}
 Health_recipe <- 
@@ -142,7 +155,7 @@ Health_recipe <-
 ```
 
 
-# Creating a Workflow
+## Creating a Workflow
 
 ```{r}
 Health_workflow <- 
@@ -153,7 +166,8 @@ Health_workflow <-
 Health_workflow
 ```
 
-# Fitting the Model
+## Fitting the Model
+### Hyperparameter Tuning
 
 ```{r}
 set.seed(100)
@@ -179,7 +193,7 @@ Health_fit <- tune_grid(
 Health_fit
 ```
 
-# Plotting of the results. 
+### Plotting of the results. 
 
 ```{r}
 Health_fit %>%
@@ -206,6 +220,7 @@ Health_fit %>%
   geom_point() +
   labs(y = "Accuracy")
 ```
+
 ### Collecting the results
 
 ```{r}
@@ -220,37 +235,121 @@ rf_auc_fit <-
   collect_predictions(parameters = rf_best) 
 ```
 
-# Metrics
+### Metrics
 
-## Confusion Matrix
+#### Confusion Matrix
 
 ```{r}
 conf_mat(rf_auc_fit, truth = Crohn,
          estimate = .pred_class)
 ```
-
-# Accuracy
+The model correctly classified people with no crohn disease, but is underperforming to predict those who has crohn disease. OUt of people with no crohn disease(N= 28587), the model correctly classified 28586. However, out of 243 people with crohn disease, the model only classified 6 as having crohn disease, showing significant underperformance.
+#### Accuracy
 
 ```{r}
 accuracy(rf_auc_fit, truth = Crohn,
-         estimate = .pred_class)
+         estimate = .pred_class, event_level= "second")
 ```
+The accuracy of the model is 99.17, which even though is good but somewhat misleading given the model underperformance for people with crohn disease.
+
+#### Sensitivity
 
 ```{r}
 sens(rf_auc_fit, truth = Crohn,
-         estimate = .pred_class)
+         estimate = .pred_class, event_level= "second")
 ```
+The sensitivity of the model is only 2.5 % which is very low.
+
+#### Specificity
 
 ```{r}
 spec(rf_auc_fit, truth = Crohn,
-         estimate = .pred_class)
+         estimate = .pred_class, event_level= "second")
 ```
+The specificity of the model is 99.99 % which is good.
+
+#### F1 score
+
 ```{r}
 f_meas(rf_auc_fit, truth = Crohn,
+         estimate = .pred_class, event_level= "second")
+```
+
+The F1 score is low, which is 4.8%. This means that the model is failing to coreectly identify positive cases.
+
+## Baseline model
+```{r}
+rf_baseline <- rand_forest(
+  trees = 100,
+  mtry = NULL,     
+  min_n = NULL
+) %>%
+  set_engine("ranger") %>%
+  set_mode("classification")
+```
+  
+```{r}
+Baseline_res <- fit_resamples(
+  rf_baseline,
+  Crohn ~ ., 
+  resamples = folds,
+  control=control_resamples(save_pred = TRUE)
+)
+```
+
+### Collecting the Results
+```{r}
+collect_metrics(Baseline_res)
+preds <- collect_predictions(Baseline_res)
+```
+
+### Metrics
+
+#### Confusion Matrix of baseline model 
+
+```{r}
+conf_mat(preds, truth = Crohn,
          estimate = .pred_class)
 ```
-# Final Model 
+The model correctly classified people with no crohn disease, but is underperforming to predict those who has crohn disease. Out of people with no crohn disease(N= 28587), the model correctly classified 28587. However, out of 243 people with crohn disease, the model didn't classify any of them as positive, showing significant underperformance.
 
+#### Accuracy of baseline model
+
+```{r}
+accuracy(preds, truth = Crohn,
+         estimate = .pred_class, event_level="second")
+```
+The accurarcy of the model is 99.15% which as we know is misleading given the model didn't classifies anyone as having the crohn disease.
+
+#### Sensitivity of baseline model
+
+```{r}
+sens(preds, truth = Crohn,
+         estimate = .pred_class,event_level= "second")
+```
+
+The sensitivity of the model is zero.
+
+#### Specificity of baseline model
+```{r}
+spec(preds, truth = Crohn,
+         estimate = .pred_class, event_level= "second")
+```
+The specificity of the model is one.
+
+#### F1 score of baseline model
+
+```{r}
+f_meas(preds, truth = Crohn,
+         estimate = .pred_class, event_level= "second")
+```
+The F1 value is also zero.
+
+# Comparing the model
+
+Based on the comparison of the model using the different metrics, we can say that the best model extracted using the hyperparameter tuning is better than the baseline model, even though the best model is also underperforming to predict crohn disease. This indicates that better predictor variables are required and even upsampling can also help in increasing the model performance due to uneven succes to failure ratio.
+
+# Final Model 
 ```{r}
 final_model <- finalize_model(
                   rf_model,
@@ -259,7 +358,7 @@ final_model <- finalize_model(
 
 final_model
 ```
-### Variable Importance
+# Variable Importance
 
 ```{r}
 tree_prep <- prep(Health_recipe)
