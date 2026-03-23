@@ -56,6 +56,7 @@ Small_data <- select(data, DIS_CROHN_EVER, HS_GEN_HEALTH, SDC_AGE_CALC, SDC_EDU_
 # Preparing the variables
 
 The Crohn Disease was used as the outcome variable of interest. The variables was recoded to binary with 0 representing no crohn disease and 1 representing crohn disease.
+
 ```{r}
 table(Small_data$DIS_CROHN_EVER)
 
@@ -159,7 +160,6 @@ Health_recipe <-
   step_zv(all_predictors()) 
 ```
 
-
 ## Creating a Workflow
 
 ```{r}
@@ -172,6 +172,7 @@ Health_workflow
 ```
 
 ## Fitting the Model
+
 ### Hyperparameter Tuning
 
 ```{r}
@@ -200,6 +201,7 @@ Health_fit
 
 ### Plotting of the results. 
 
+#### Method 1
 ```{r}
 Health_fit %>%
   collect_metrics() %>%
@@ -215,6 +217,7 @@ Health_fit %>%
   labs(x = NULL, y = "Accuracy")
 ```
 
+#### Method 2
 ```{r}
 Health_fit %>%
   collect_metrics() %>%
@@ -249,6 +252,7 @@ conf_mat(rf_auc_fit, truth = Crohn,
          estimate = .pred_class)
 ```
 The model correctly classified people with no crohn disease, but is underperforming to predict those who has crohn disease. OUt of people with no crohn disease(N= 28587), the model correctly classified 28586. However, out of 243 people with crohn disease, the model only classified 6 as having crohn disease, showing significant underperformance.
+
 #### Accuracy
 
 ```{r}
@@ -280,9 +284,12 @@ f_meas(rf_auc_fit, truth = Crohn,
          estimate = .pred_class, event_level= "second")
 ```
 
-The F1 score is low, which is 4.8%. This means that the model is failing to coreectly identify positive cases.
+The F1 score is low, which is 4.8%. This means that the model is failing to correctly identify positive cases.
 
 ## Baseline model
+
+### Building the model
+
 ```{r}
 rf_baseline <- rand_forest(
   trees = 100,
@@ -303,6 +310,7 @@ Baseline_res <- fit_resamples(
 ```
 
 ### Collecting the Results
+
 ```{r}
 collect_metrics(Baseline_res)
 preds <- collect_predictions(Baseline_res)
