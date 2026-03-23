@@ -9,7 +9,12 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
+# Github link
+
+https://github.com/harsimranghai91-eng/Supervised-Learning-CHEP-898.git
+
 # Loading the Library
+
 ```{r}
 library(tidyverse)
 library(tidymodels)
@@ -347,9 +352,10 @@ The F1 value is also zero.
 
 # Comparing the model
 
-Based on the comparison of the model using the different metrics, we can say that the best model extracted using the hyperparameter tuning is better than the baseline model, even though the best model is also underperforming to predict crohn disease. This indicates that better predictor variables are required and even upsampling can also help in increasing the model performance due to uneven succes to failure ratio.
+Based on the comparison of the model using the different metrics, we can say that the best model extracted using the hyperparameter tuning is better than the baseline model, even though the best model is also underperforming to predict crohn disease. This indicates that better predictor variables are required and even upsampling can also help in increasing the model performance due to uneven success to failure ratio.
 
 # Final Model 
+
 ```{r}
 final_model <- finalize_model(
                   rf_model,
@@ -358,6 +364,7 @@ final_model <- finalize_model(
 
 final_model
 ```
+
 # Variable Importance
 
 ```{r}
@@ -369,6 +376,7 @@ final_model %>%
     data = juice(tree_prep)) %>%
   vip(geom = "point")
 ```
+The most important variable  in predicting the crohn disease is education level age (0.005) followed by education level (0.004) and age (0.0026). The least important variables are gender (< 0.001) followed by work status (< 0.001). 
 
 ```{r}
 final_rf_workflow <- workflow() %>%
