@@ -438,7 +438,7 @@ library(microbenchmark)</code></pre>
 <div id="loading-the-data" class="section level1">
 <h1>Loading the Data</h1>
 <p>I used the Canpath Imputed dataset for this assignment.</p>
-<pre class="r"><code>data&lt;-read_csv(&quot;Canpath_imputed.csv&quot;)</code></pre>
+<pre class="r"><code>data &lt;- read_csv(&quot;Canpath_imputed.csv&quot;)</code></pre>
 <pre><code>## Rows: 41187 Columns: 93
 ## ── Column specification ────────────────────────────────────────────────────────
 ## Delimiter: &quot;,&quot;
@@ -457,7 +457,7 @@ for ease of computation.</p>
 <div id="preparing-the-variables" class="section level1">
 <h1>Preparing the variables</h1>
 <p>The Crohn Disease was used as the outcome variable of interest. The
-variables was recoded to binary with 0 representing no crohn disease and
+variable was recoded to binary with 0 representing no crohn disease and
 1 representing crohn disease.</p>
 <pre class="r"><code>table(Small_data$DIS_CROHN_EVER)</code></pre>
 <pre><code>## 
@@ -3986,8 +3986,6 @@ dataset.</p>
 </div>
 <div id="splitting-the-dataset" class="section level1">
 <h1>Splitting the dataset</h1>
-<p>The dataset was split to evaluate the model performance after fitting
-the model on training dataset.</p>
 <pre class="r"><code># Fixing the random numbers by setting the seed to reproduce the analysis
 set.seed(10)
 

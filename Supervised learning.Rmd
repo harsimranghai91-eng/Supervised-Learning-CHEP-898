@@ -42,7 +42,7 @@ library(microbenchmark)
 I used the Canpath Imputed dataset for this assignment.
 
 ```{r}
-data<-read_csv("Canpath_imputed.csv")
+data <- read_csv("Canpath_imputed.csv")
 ```
 
 # Simplifying the dataset
@@ -55,7 +55,7 @@ Small_data <- select(data, DIS_CROHN_EVER, HS_GEN_HEALTH, SDC_AGE_CALC, SDC_EDU_
 
 # Preparing the variables
 
-The Crohn Disease was used as the outcome variable of interest. The variables was recoded to binary with 0 representing no crohn disease and 1 representing crohn disease.
+The Crohn Disease was used as the outcome variable of interest. The variable was recoded to binary with 0 representing no crohn disease and 1 representing crohn disease.
 
 ```{r}
 table(Small_data$DIS_CROHN_EVER)
@@ -94,16 +94,19 @@ Small_data$HS_GEN_HEALTH <- NULL
 # Exploratory data Analysis
 
 ## Changing variables into factors
+
 ```{r}
 Small_data <- Small_data %>% mutate(across(c(SDC_EDU_LEVEL,WRK_FULL_TIME, SMK_CIG_EVER, SDC_INCOME, HS_ROUTINE_VISIT_EVER, DIS_RESP_SLEEP_APNEA_EVER,SDC_GENDER),as.factor))
 ```
 
 
 ## Descriptive of dataset
+
 ```{r}
 summary(Small_data)
 ```
 ## Checking Duplicates
+
 ```{r}
 duplicated(Small_data)
 ```
@@ -117,8 +120,6 @@ any(is.na(Small_data))
 No missing values were found in the dataset as expected from imputed dataset.
 
 # Splitting the dataset
-
-The dataset was split to evaluate the model performance after fitting the model on training dataset.
 
 ```{r}
 # Fixing the random numbers by setting the seed to reproduce the analysis
@@ -202,6 +203,7 @@ Health_fit
 ### Plotting of the results. 
 
 #### Method 1
+
 ```{r}
 Health_fit %>%
   collect_metrics() %>%
@@ -218,6 +220,7 @@ Health_fit %>%
 ```
 
 #### Method 2
+
 ```{r}
 Health_fit %>%
   collect_metrics() %>%
@@ -251,6 +254,7 @@ rf_auc_fit <-
 conf_mat(rf_auc_fit, truth = Crohn,
          estimate = .pred_class)
 ```
+
 The model correctly classified people with no crohn disease, but is underperforming to predict those who has crohn disease. OUt of people with no crohn disease(N= 28587), the model correctly classified 28586. However, out of 243 people with crohn disease, the model only classified 6 as having crohn disease, showing significant underperformance.
 
 #### Accuracy
@@ -259,6 +263,7 @@ The model correctly classified people with no crohn disease, but is underperform
 accuracy(rf_auc_fit, truth = Crohn,
          estimate = .pred_class, event_level= "second")
 ```
+
 The accuracy of the model is 99.17, which even though is good but somewhat misleading given the model underperformance for people with crohn disease.
 
 #### Sensitivity
@@ -267,6 +272,7 @@ The accuracy of the model is 99.17, which even though is good but somewhat misle
 sens(rf_auc_fit, truth = Crohn,
          estimate = .pred_class, event_level= "second")
 ```
+
 The sensitivity of the model is only 2.5 % which is very low.
 
 #### Specificity
@@ -275,6 +281,7 @@ The sensitivity of the model is only 2.5 % which is very low.
 spec(rf_auc_fit, truth = Crohn,
          estimate = .pred_class, event_level= "second")
 ```
+
 The specificity of the model is 99.99 % which is good.
 
 #### F1 score
@@ -324,6 +331,7 @@ preds <- collect_predictions(Baseline_res)
 conf_mat(preds, truth = Crohn,
          estimate = .pred_class)
 ```
+
 The model correctly classified people with no crohn disease, but is underperforming to predict those who has crohn disease. Out of people with no crohn disease(N= 28587), the model correctly classified 28587. However, out of 243 people with crohn disease, the model didn't classify any of them as positive, showing significant underperformance.
 
 #### Accuracy of baseline model
@@ -332,6 +340,7 @@ The model correctly classified people with no crohn disease, but is underperform
 accuracy(preds, truth = Crohn,
          estimate = .pred_class, event_level="second")
 ```
+
 The accurarcy of the model is 99.15% which as we know is misleading given the model didn't classifies anyone as having the crohn disease.
 
 #### Sensitivity of baseline model
@@ -348,6 +357,7 @@ The sensitivity of the model is zero.
 spec(preds, truth = Crohn,
          estimate = .pred_class, event_level= "second")
 ```
+
 The specificity of the model is one.
 
 #### F1 score of baseline model
@@ -356,6 +366,7 @@ The specificity of the model is one.
 f_meas(preds, truth = Crohn,
          estimate = .pred_class, event_level= "second")
 ```
+
 The F1 value is also zero.
 
 # Comparing the model
